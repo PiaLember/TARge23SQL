@@ -326,3 +326,336 @@ CREATE table Test1
 
 INSERT into Test1 VALUES('x')
 select * from Test1
+
+--rida 303
+ALTER TABLE Employees
+DROP COLUMN City
+
+--inner join
+--kuvab neid, kellel on DepartmentName all vaartus
+SELECT Name, Gender, Salary, DeparmentName
+from Employees
+inner join Department
+on Employees.Departmendid = Department.Id
+
+SELECT * from Employees
+SELECT * from Department
+
+--left join
+--kuidas saada koik andmed Employeest katte
+select Name, Gender, Salary, DeparmentName
+from Employees
+left join Department
+on Employees.Departmendid = department.Id
+
+SELECT * from Employees
+SELECT * from Department
+
+--right join
+--kuidas saada DepartmentName alla uus nimetus
+select Name, Gender, Salary, DeparmentName
+from Employees
+right join Department --voi kasutada ka RIGHT OUTER JOIN
+on Employees.Departmendid = department.Id
+
+-- kuidas saada koikide tabelite vaartused yhte paringusse
+select Name, Gender, Salary, DeparmentName
+from Employees
+full outer join Department
+on Employees.Departmendid = department.Id
+
+--cross join votab kaks allpool olevat tabelit kokku
+--ja korrutab need omavahel labi
+--koikide kombinatsioonide genereerimiseks
+select Name, Gender, Salary, DeparmentName
+from Employees
+cross join Department
+
+--paringu sisu
+select ColumnList
+from LeftTable
+joinType RightTable
+on JoinCondition
+
+--kuidas kuvada ainult need isikud, kellel on DepartmentName NULL
+select Name, Gender, Salary, DeparmentName
+from Employees
+left join Department
+on Employees.Departmendid = department.Id
+where Employees.Departmendid is null
+
+--teine variant
+select Name, Gender, Salary, DeparmentName
+from Employees
+left join Department
+on Employees.Departmendid = department.Id
+where Department.Id is null
+
+--full join
+--molema tabeli mitte-kattuvate vaartustega read kuvab valja
+select Name, Gender, Salary, DeparmentName
+from Employees
+full join Department
+on Employees.Departmendid = department.Id
+where Employees.Departmendid is null
+or Department.Id is null
+
+--kuidas saame Department tabelis oleva rea, kus on NULL
+select Name, Gender, Salary, DeparmentName
+from Employees
+right join Department
+on Employees.Departmendid = department.Id
+where Employees.Departmendid is null
+
+--kuidas muuta tabeli nime, alguses vana tabeli nimi ja siis uue nimi
+sp_rename 'Department1','Department'
+
+-- kasutame Employees tabeli asemel lyhendit E
+-- ja Departmendi puhul D
+SELECT E.Name as EmpName, D.DeparmentName as DeptName
+from Employees E
+left join Department D
+on E.Departmendid = D.Id
+
+--inner join
+-- kuvab ainult isikuid, kellel on DeptId vaartused 
+SELECT E.Name as EmpName, D.DeparmentName as DeptName
+from Employees E
+inner join Department D
+on E.Departmendid = D.Id
+
+-- cross join
+SELECT E.Name as EmpName, D.DeparmentName as DeptName
+from Employees E
+cross join Department D
+
+--
+select isnull('Pia', 'No Manager') as manager
+
+-- NULL asemel kuvab No Manager
+select coalesce(NULL, 'No Manager') as manager
+
+-- kui Expression on oige, siis paneb vaartuse, mida soovid
+-- voi mone teise vaartuse
+
+--
+alter TABLE Employees
+add  ManagerId int
+
+SELECT * from Employees
+SELECT * from Department
+
+-- neil, kellel ei ole ylemust, siis paneb neile No Manager teksti
+SELECT E.Name as Employee, isnull(M.Name,'No Manager') as manager
+from Employees E
+left join Employees M
+on E.ManagerId = M.Id
+
+-- teeme paringu, kus kasutame case-i
+SELECT E.Name as Employee, case when M.Name is null then 'No Manager'
+else M.Name end as Manager
+from Employees E
+left join Employees M
+on E.ManagerId = M.Id
+
+-- lisame tabelisse uued veerud
+alter table Employees
+add MiddleName nvarchar(30),
+LastName nvarchar(30)
+
+SELECT * from Employees
+SELECT * from Department
+
+sp_rename 'Employees.Name', 'FirstName'
+
+sp_rename 'Employees.Departmendid', 'DepartmentId'
+SELECT * from Employees
+SELECT * from Department
+
+insert into Employees (Id, MiddleName, LastName)
+values (1, 'Nick', 'Jones')
+
+update Employees
+set MiddleName = 'Nick'
+where Id = 1
+
+update Employees
+set LastName = 'Jones'
+where Id = 1
+
+SELECT * from Employees
+
+update Employees
+set LastName = 'Anderson'
+where Id = 2
+
+update Employees
+set LastName = 'Smith'
+where Id = 4
+
+update Employees
+set FirstName = null
+where Id = 5
+
+update Employees
+set MiddleName = 'Todd'
+where Id = 5
+
+update Employees
+set LastName = 'Someone'
+where Id = 5
+
+SELECT * from Employees
+
+update Employees
+set MiddleName = 'Ten'
+where Id = 6
+
+update Employees
+set LastName = 'Sven'
+where Id = 6
+
+SELECT * from Employees
+
+update Employees
+set LastName = 'Connor'
+where Id = 7
+
+SELECT * from Employees
+
+update Employees
+set MiddleName = 'Balerine'
+where Id = 8
+
+SELECT * from Employees
+
+update Employees
+set MiddleName = '007'
+where Id = 9
+
+update Employees
+set LastName = 'Bond'
+where Id = 9
+
+SELECT * from Employees
+
+update Employees
+set FirstName = null
+where Id = 10
+
+update Employees
+set LastName = 'Crowe'
+where Id = 10
+
+SELECT * from Employees
+
+-- igast reast votab esimesena taidetud lahtri ja kuvab ainult seda
+SELECT Id, coalesce(FirstName, MiddleName, LastName) as NAME
+FROM Employees
+
+--loome kaks tabelit
+CREATE TABLE IndianCustomers
+(
+    Id INT identity(1,1),
+    Name NVARCHAR(25),
+    Email NVARCHAR(25)
+)
+
+CREATE TABLE UKCustomers
+(
+    Id INT identity(1,1),
+    Name NVARCHAR(25),
+    Email NVARCHAR(25)
+)
+
+insert into IndianCustomers (Name, Email)
+VALUES ('Raj', 'R@R.com'),
+('Sam', 'S@S.com')
+
+insert into UKCustomers (Name, Email)
+VALUES ('Ben', 'B@B.com'),
+('Sam', 'S@S.com')
+
+select * from IndianCustomers
+SELECT * FROM UKCustomers
+
+-- kasutame union all, mis naitab koiki ridu
+SELECT Id, Name, Email FROM IndianCustomers
+union ALL
+SELECT Id, Name, Email from UKCustomers
+
+-- union - korduvate vaartustega ridu ei korrata
+SELECT Id, Name, Email FROM IndianCustomers
+union
+SELECT Id, Name, Email from UKCustomers
+
+-- kuidas sorteerida nime jargi
+SELECT Id, Name, Email FROM IndianCustomers
+union
+SELECT Id, Name, Email from UKCustomers
+ORDER by Name
+
+-- stored procedure
+CREATE PROCEDURE spGetEmployees
+as BEGIN
+    select FirstName, Gender from Employees
+END
+
+-- nyyd saab kasutada selle nimelist sp-d 
+-- saab kutsuda kolmel viisil
+spGetEmployees
+exec spGetEmployees
+execute spGetEmployees
+
+---
+create PROC spGetEmployeesByGenderAndDepartment
+@Gender NVARCHAR(20),
+@DepartmentId INT
+as BEGIN
+    SELECT FirstName, Gender, DepartmentId from Employees WHERE Gender = @Gender
+    and DepartmentId = @DepartmentId
+END
+
+-- kui nyyd allolevat kasklust kaima panna, siis nouab Gender parameetrit
+spGetEmployeesByGenderAndDepartment
+
+--oige variant
+spGetEmployeesByGenderAndDepartment 'Male', 1
+
+--nii saab parameetrite jarjestusest mooda minna
+spGetEmployeesByGenderAndDepartment @DepartmentId = 1, @Gender = 'Male'
+
+--saab sp sisu vaadata result vaates
+sp_helptext spGetEmployeesByGenderAndDepartment
+
+-- muuda sp-d ja pane voti peale,
+-- et keegi teine peale teie ei saaks muuta
+ALTER PROC spGetEmployeesByGenderAndDepartment
+@Gender NVARCHAR(20),
+@DepartmentId INT
+WITH encryption
+as BEGIN
+    SELECT FirstName, Gender, DepartmentId from Employees WHERE Gender = @Gender
+    and DepartmentId = @DepartmentId
+END
+
+---
+
+create PROC spGetEmployeeCountByGender
+@Gender NVARCHAR(20),
+@EmployeeCount int OUTPUT
+as BEGIN
+    select @EmployeeCount = COUNT(Id) from Employees where Gender = @Gender
+END
+
+--annab tulemuse, kus loendab ara nouetele vastavad read
+--prindib ka tulemuse kirja teel
+DECLARE @TotalCount INT
+EXECUTE spGetEmployeeCountByGender 'Male', @TotalCount out
+IF(@TotalCount = 0)
+    print '@TotalCount is null'
+ELSE
+    PRINT '@TotalCount is not null'
+PRINT @TotalCount
+GO -- tee ylevalpool ara ja siis mine edasi
+SELECT * from Employees
