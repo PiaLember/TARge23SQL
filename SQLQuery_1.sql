@@ -633,7 +633,7 @@ sp_helptext spGetEmployeesByGenderAndDepartment
 ALTER PROC spGetEmployeesByGenderAndDepartment
 @Gender NVARCHAR(20),
 @DepartmentId INT
-WITH encryption
+--WITH encryption
 as BEGIN
     SELECT FirstName, Gender, DepartmentId from Employees WHERE Gender = @Gender
     and DepartmentId = @DepartmentId
@@ -659,3 +659,223 @@ ELSE
 PRINT @TotalCount
 GO -- tee ylevalpool ara ja siis mine edasi
 SELECT * from Employees
+
+-- naitab ara, et mitu rida vastab n6uetele
+DECLARE @TotalCount INT
+EXECUTE spGetEmployeeCountByGender @EmployeeCount = @TotalCount out, @Gender = 'Male'
+print @TotalCount
+
+-- sp sisu vaatamine
+sp_help spGetEmployeeCountByGender
+
+-- tabeli info
+sp_help Person
+
+-- kui soovid naha sp teksti
+sp_helptext spGetEmployeeCountByGender
+
+-- millest s6ltub sp
+sp_depends spGetEmployeeCountByGender
+--vaatame tabeli s6ltuvust
+sp_depends Employees
+
+--sp tegemine
+Create PROC spGetNameById
+@Id int,
+@Name NVARCHAR(20) OUTPUT
+as BEGIN
+    SELECT @Name = Id, @Name = FirstName from Employees
+END
+
+ALTER PROC spGetNameById
+@Id int,
+@Name NVARCHAR(20) OUTPUT
+as BEGIN
+    SELECT @Id = Id, @Name = FirstName from Employees
+END
+
+-- annab kogu tabeli ridade arvu
+CREATE PROC spTotalCount2
+@TotalCount INT OUTPUT
+as BEGIN
+    SELECT @TotalCount = COUNT(Id) from Employees
+end
+
+--saame teada, mitu rida on tabelis
+DECLARE @TotalEmployees INT
+EXECUTE spTotalCount2 @TotalEmployees output
+SELECT @TotalEmployees
+
+--mis id all on keegi nime jargi
+Create PROC spGetNameById1
+@Id int,
+@FirstName NVARCHAR(50) OUTPUT
+as BEGIN
+    SELECT @FirstName = FirstName from Employees WHERE Id = @Id
+END
+
+--annab tulemuse, kus Id esimesel real on keegi koos nimega
+DECLARE @FirstName NVARCHAR(50)
+EXECUTE spGetNameById1 1, @FirstName output
+PRINT 'Name of the employee = ' + @FirstName
+
+---
+DECLARE @FirstName NVARCHAR(20)
+EXECUTE spGetNameById 1, @FirstName out
+PRINT 'Name = ' + @FirstName
+
+sp_help spGetNameById
+
+--
+CREATE PROC spGetNameById2
+@Id INT
+as BEGIN
+    return(select FirstName from Employees where Id = @Id)
+end
+
+--kutsuda declare abil valja spGetNameBy2
+-- ja oelda, et miks see ei toota
+DECLARE @EmployeeName NVARCHAR(50)
+EXECUTE @EmployeeName = spGetNameById2 1
+PRINT 'Name of the employee = ' + @EmployeeName
+
+-- sisseehitatud string funktsioonid
+
+-- see konverteerib ascii tahe vaartuse numbriks
+SELECT ascii('a')
+
+-- kuvab A-tahte
+SELECT CHAR(65)
+
+--prindime kogu tahestiku valja
+DECLARE @Start INT
+SET @Start = 65
+WHILE (@Start <= 255)
+BEGIN
+    SELECT CHAR(@Start)
+    SET @Start = @Start +1
+END
+
+-- eemaldame tyhjad kohad sulgudes
+SELECT LTRIM('       Hello')
+
+-- tyhikute eemaldamine veerust
+select LTRIM(FirstName) as FirstName, MiddleName, Lastname from Employees
+
+select * from Employees
+
+--- parempoolne trim (eemaldab tyhikud paremalt)
+SELECT RTRIM('   Hello                          ')
+
+select RTRIM(FirstName) as FirstName, MiddleName, Lastname from Employees
+select * from Employees
+
+--- keerab kooloni sees olevad andmed vastupidiseks
+--- vastavalt upper ja lower-ga saan muuta markide suurust
+--- reverse funktsioon poorab koik ymber
+SELECT REVERSE(UPPER(LTRIM(FirstName))) as FirstName, MiddleName, lower(LastName),
+RTRIM(LTRIM(FirstName)) + ' ' + MiddleName + ' ' + Lastname as FullName
+FROM Employees
+
+--- naeb, mitu tahte on sonal ja loeb tyhikud sisse
+SELECT FirstName, LEN(FirstName) as [Total Characters] FROM Employees
+
+--- naeb, mitu tahte on sonal ja ei ole tyhikuid
+SELECT FirstName, LEN(TRIM(FirstName)) as [Total Characters] from Employees
+
+--- left, right, substring
+SELECT LEFT('abcdef', 4)
+SELECT RIGHT('abcdef', 4)
+
+-- kuvab @-margi asetust
+SELECT CHARINDEX('@', 'sara@aaa.com')
+
+--- esimene nr peale komakohta naitab, et mitmendast alustab ja teine mitut peale seda kuvab
+SELECT SUBSTRING('pam@bbb.com', 7, 2)
+
+--- @-margist kuvab 3 tahemarki. Viimase numbriga saab maarata pikkust
+SELECT SUBSTRING('pam@bbb.com', CHARINDEX('@', 'pam@bbb.com') + 2, LEN('pam@bbb.com') - CHARINDEX('@', 'pam@bbb.com'))
+
+--- saame teada domeeni nimed e-mailides
+SELECT SUBSTRING(Email, CHARINDEX('@', Email) + 1, LEN(Email) - CHARINDEX('@', Email)) as EmailDomain
+from Person
+
+ALTER TABLE Employees
+add Email NVARCHAR(20)
+
+
+update Employees
+set Email = 'Sam@aaa.com'
+where Id = 1
+
+update Employees
+set Email = 'Ram@aaa.com'
+where Id = 2
+
+update Employees
+set Email = 'Sara@ccc.com'
+where Id = 3
+
+update Employees
+set Email = 'Todd@bbb.com'
+where Id = 4
+
+update Employees
+set Email = 'John@aaa.com'
+where Id = 5
+
+update Employees
+set Email = 'Sana@ccc.com'
+where Id = 6
+
+update Employees
+set Email = 'James@bbb.com'
+where Id = 7
+
+update Employees
+set Email = 'Rob@ccc.com'
+where Id = 8
+
+update Employees
+set Email = 'Steve@aaa.com'
+where Id = 9
+
+update Employees
+set Email = 'Pam@bbb.com'
+where Id = 10
+
+select * from Employees
+
+SELECT SUBSTRING(Email, CHARINDEX('@', Email) + 1, LEN(Email) - CHARINDEX('@', Email)) as EmailDomain
+from Employees
+
+---lisame *-margi alates teatud kohast
+SELECT FirstName, LastName,
+    SUBSTRING(Email, 1, 2) + REPLICATE('*', 5) + ---peale teist tahemarki paneb 5 tarni
+    SUBSTRING(Email, CHARINDEX('@', Email), LEN(Email) - CHARINDEX('@', Email) + 1) as Email
+from Employees
+
+--- replicate
+SELECT REPLICATE('asd', 3)
+
+---kuidas sisestada tyhikut
+SELECT SPACE(5)
+
+---tyhikute arv kahe nime vahel
+SELECT FirstName + SPACE(25) + LastName as FullName
+FROM Employees
+
+---PATINDEX
+---sama, mis charindex aga dynaamilisem ja saab kasutada wildcardi (%)
+SELECT Email, PATINDEX('%@aaa.com', Email) as FirstOccurence
+FROM Employees
+where PATINDEX('%@aaa.com', Email) > 0
+
+--- koik .com-d asendatakse .net-ga
+SELECT Email, REPLACE(Email, '.com', '.net') as ConvertedEmail
+from Employees
+
+--- asendame peale esimest m'rki kolm tahte viie tarniga
+SELECT FirstName, LastName, Email,
+    STUFF(Email, 2, 3, '*****') as StuffedEmail
+    from Employees
